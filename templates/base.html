@@ -15,7 +15,11 @@
 </head>
 <body>
 
-<div class="topbar d-none d-md-block">
+<!-- ════════════════════════════════════════════════════════
+     DESKTOP — Topbar + Header + Navbar (cachés sur mobile)
+     ════════════════════════════════════════════════════ -->
+
+<div class="topbar d-none d-lg-block">
     <div class="container">
         <div class="row align-items-center py-2">
             <div class="col-md-6">
@@ -31,10 +35,10 @@
     </div>
 </div>
 
-<header class="site-header">
+<header class="site-header d-none d-lg-block">
     <div class="container">
         <div class="row align-items-center py-3">
-            <div class="col-md-4 d-none d-md-flex align-items-center">
+            <div class="col-md-4 d-flex align-items-center">
                 <form action="{% url 'articles:recherche' %}" method="get" class="w-100">
                     <div class="input-group input-group-sm">
                         <input type="text" name="q" class="form-control" placeholder="Rechercher un article..." value="{{ request.GET.q|default:'' }}">
@@ -42,7 +46,7 @@
                     </div>
                 </form>
             </div>
-            <div class="col-6 col-md-4 text-center">
+            <div class="col-md-4 text-center">
                 <a href="{% url 'articles:accueil' %}" class="brand-link text-decoration-none">
                     <div class="d-flex align-items-center justify-content-center gap-2">
                         <div class="brand-icon-wrap"><i class="bi bi-newspaper"></i></div>
@@ -53,7 +57,7 @@
                     </div>
                 </a>
             </div>
-            <div class="col-6 col-md-4 text-end">
+            <div class="col-md-4 text-end">
                 {% if user.is_authenticated %}
                 <div class="dropdown d-inline-block">
                     <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
@@ -75,30 +79,24 @@
                 </div>
                 {% else %}
                 <a href="{% url 'accounts:connexion' %}" class="btn btn-sm btn-outline-primary me-2">Connexion</a>
-                <a href="{% url 'accounts:inscription' %}" class="btn btn-sm btn-accent d-none d-sm-inline-block">S'inscrire</a>
+                <a href="{% url 'accounts:inscription' %}" class="btn btn-sm btn-accent">S'inscrire</a>
                 {% endif %}
             </div>
         </div>
     </div>
 </header>
 
-<nav class="navbar navbar-expand-lg navbar-dark main-nav sticky-top">
+<nav class="navbar navbar-expand-lg navbar-dark main-nav sticky-top d-none d-lg-flex">
     <div class="container">
-        <a class="navbar-brand d-lg-none fw-bold" href="{% url 'articles:accueil' %}">Le Média</a>
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navMain">
+        <div class="collapse navbar-collapse show">
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'accueil' %}active{% endif %}" href="{% url 'articles:accueil' %}">
-                        <i class="bi bi-house-fill me-1"></i>Accueil
-                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'accueil' %}active{% endif %}"
+                       href="{% url 'articles:accueil' %}"><i class="bi bi-house-fill me-1"></i>Accueil</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.resolver_match.url_name == 'liste' %}active{% endif %}" href="{% url 'articles:liste' %}">
-                        <i class="bi bi-grid me-1"></i>Actualités
-                    </a>
+                    <a class="nav-link {% if request.resolver_match.url_name == 'liste' %}active{% endif %}"
+                       href="{% url 'articles:liste' %}"><i class="bi bi-grid me-1"></i>Actualités</a>
                 </li>
                 {% for cat in nav_categories %}
                 <li class="nav-item">
@@ -112,22 +110,41 @@
                 </li>
                 {% if user.is_authenticated and est_journaliste %}
                 <li class="nav-item">
-                    <a class="nav-link nav-redac {% if 'redaction' in request.path %}active{% endif %}" href="{% url 'articles:mes_articles' %}">
-                        <i class="bi bi-pencil-square me-1"></i>Rédaction
-                    </a>
+                    <a class="nav-link nav-redac {% if 'redaction' in request.path %}active{% endif %}"
+                       href="{% url 'articles:mes_articles' %}"><i class="bi bi-pencil-square me-1"></i>Rédaction</a>
                 </li>
                 {% endif %}
-                <li class="nav-item d-lg-none mt-2">
-                    <form action="{% url 'articles:recherche' %}" method="get" class="d-flex gap-2">
-                        <input type="text" name="q" class="form-control form-control-sm" placeholder="Rechercher...">
-                        <button class="btn btn-sm btn-accent" type="submit"><i class="bi bi-search"></i></button>
-                    </form>
-                </li>
             </ul>
         </div>
     </div>
 </nav>
 
+<!-- ════════════════════════════════════════════════════════
+     MOBILE — Header compact + barre de recherche dépliable
+     ════════════════════════════════════════════════════ -->
+
+<header class="mobile-header d-flex d-lg-none">
+    <a href="{% url 'articles:accueil' %}" class="mobile-brand">
+        <div class="brand-icon-wrap"><i class="bi bi-newspaper"></i></div>
+        Le Média
+    </a>
+    <button class="mobile-search-btn" id="mobileSearchToggle" aria-label="Rechercher">
+        <i class="bi bi-search" id="searchIcon"></i>
+    </button>
+</header>
+
+<div class="mobile-search-bar d-lg-none" id="mobileSearchBar">
+    <form action="{% url 'articles:recherche' %}" method="get">
+        <div class="input-group">
+            <input class="form-control" type="search" name="q"
+                   placeholder="Rechercher un article…"
+                   value="{{ request.GET.q|default:'' }}">
+            <button class="btn btn-accent" type="submit"><i class="bi bi-search"></i></button>
+        </div>
+    </form>
+</div>
+
+<!-- ── Messages flash ──────────────────────────────────────────────── -->
 {% if messages %}
 <div class="container mt-3">
     {% for message in messages %}
@@ -143,8 +160,10 @@
 </div>
 {% endif %}
 
+<!-- ── Contenu principal ───────────────────────────────────────────── -->
 <main class="main-content">{% block content %}{% endblock %}</main>
 
+<!-- ── Footer (desktop) ───────────────────────────────────────────── -->
 <footer class="site-footer mt-5">
     <div class="footer-top py-5">
         <div class="container">
@@ -211,57 +230,120 @@
 
 <button class="back-to-top" id="backToTop" title="Retour en haut"><i class="bi bi-arrow-up"></i></button>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-<script src="{% static 'js/main.js' %}"></script>
-{% block extra_js %}{% endblock %}
-
-<!-- ═══════════════════════════════════════════
-     BARRE DE NAVIGATION MOBILE (style TikTok/Spotify)
-     Visible uniquement sur mobile (< 992px)
-     ═══════════════════════════════════════════ -->
+<!-- ════════════════════════════════════════════════════════
+     MOBILE — Bottom Navigation Bar (style TikTok / Spotify)
+     ════════════════════════════════════════════════════ -->
 <nav class="mobile-bottom-nav d-lg-none" aria-label="Navigation mobile">
-    <a href="{% url 'articles:accueil' %}" 
+
+    <!-- Accueil -->
+    <a href="{% url 'articles:accueil' %}"
        class="mobile-nav-item {% if request.resolver_match.url_name == 'accueil' %}active{% endif %}">
         <i class="bi bi-house-fill"></i>
         <span>Accueil</span>
     </a>
-    <a href="{% url 'articles:liste' %}" 
+
+    <!-- Actualités -->
+    <a href="{% url 'articles:liste' %}"
        class="mobile-nav-item {% if request.resolver_match.url_name == 'liste' %}active{% endif %}">
         <i class="bi bi-newspaper"></i>
-        <span>Actualités</span>
+        <span>Actus</span>
     </a>
-    <a href="{% url 'articles:recherche' %}" 
+
+    <!-- Catégories — ouvre le bottom sheet -->
+    <button class="mobile-nav-item" id="btnCategoriesMobile" aria-label="Catégories">
+        <i class="bi bi-grid-3x3-gap-fill"></i>
+        <span>Catégories</span>
+    </button>
+
+    <!-- Rédiger (journalistes) ou Recherche (visiteurs) -->
+    {% if user.is_authenticated and est_journaliste %}
+    <a href="{% url 'articles:mes_articles' %}"
+       class="mobile-nav-item mobile-nav-item--redac {% if 'redaction' in request.path %}active{% endif %}">
+        <i class="bi bi-pencil-square"></i>
+        <span>Rédiger</span>
+    </a>
+    {% else %}
+    <a href="{% url 'articles:recherche' %}"
        class="mobile-nav-item {% if request.resolver_match.url_name == 'recherche' %}active{% endif %}">
         <i class="bi bi-search"></i>
         <span>Recherche</span>
     </a>
-    {% if user.is_authenticated and est_journaliste %}
-    <a href="{% url 'articles:mes_articles' %}" 
-       class="mobile-nav-item {% if 'redaction' in request.path %}active{% endif %}">
-        <i class="bi bi-pencil-square"></i>
-        <span>Rédiger</span>
-    </a>
-    <a href="{% url 'accounts:profil' %}" 
+    {% endif %}
+
+    <!-- Profil / Connexion -->
+    {% if user.is_authenticated %}
+    <a href="{% url 'accounts:profil' %}"
        class="mobile-nav-item {% if 'profil' in request.path %}active{% endif %}">
-        <i class="bi bi-person-circle"></i>
-        <span>Profil</span>
+        <span class="mobile-nav-avatar-letter">{{ user.username|first|upper }}</span>
+        <span>Moi</span>
     </a>
     {% else %}
-    <a href="{% url 'contact:contact' %}" 
-       class="mobile-nav-item {% if 'contact' in request.path %}active{% endif %}">
-        <i class="bi bi-envelope"></i>
-        <span>Contact</span>
-    </a>
-    <a href="{% url 'accounts:connexion' %}" 
+    <a href="{% url 'accounts:connexion' %}"
        class="mobile-nav-item {% if 'connexion' in request.path %}active{% endif %}">
-        <i class="bi bi-person"></i>
+        <i class="bi bi-person-circle"></i>
         <span>Connexion</span>
     </a>
     {% endif %}
+
 </nav>
 
-<!-- Espace pour que le contenu ne soit pas caché derrière la bottom nav -->
-<div class="mobile-bottom-spacer d-lg-none"></div>
+<!-- ── Panel catégories (bottom sheet) ───────────────────────────── -->
+<div class="cat-panel d-lg-none" id="catPanel">
+    <div class="cat-panel-handle"></div>
+    <div class="cat-panel-header">
+        <h6 class="cat-panel-title"><i class="bi bi-grid-3x3-gap-fill me-2"></i>Catégories</h6>
+        <button class="cat-panel-close" id="closeCatPanel" aria-label="Fermer">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="cat-panel-list">
+        {% for cat in nav_categories %}
+        <a href="{{ cat.get_absolute_url }}" class="cat-panel-item">
+            <span class="cat-panel-dot" style="background:{{ cat.couleur }}"></span>
+            {{ cat.nom }}
+            <span class="cat-panel-count">{{ cat.nombre_articles }}</span>
+        </a>
+        {% endfor %}
+        <a href="{% url 'articles:liste' %}" class="cat-panel-item cat-panel-item--all">
+            <span class="cat-panel-dot" style="background:#6c757d"></span>
+            Tous les articles
+            <i class="bi bi-arrow-right ms-auto"></i>
+        </a>
+    </div>
 
+    <!-- Actions compte dans le panel -->
+    <div class="cat-panel-footer">
+        {% if user.is_authenticated %}
+            {% if est_journaliste %}
+            <a href="{% url 'articles:mes_articles' %}" class="cat-panel-action">
+                <i class="bi bi-pencil-square"></i>Espace rédaction
+            </a>
+            {% endif %}
+            {% if user.is_staff %}
+            <a href="{% url 'admin:index' %}" class="cat-panel-action">
+                <i class="bi bi-gear"></i>Administration
+            </a>
+            {% endif %}
+            <form action="{% url 'accounts:deconnexion' %}" method="post" style="display:contents">
+                {% csrf_token %}
+                <button type="submit" class="cat-panel-action cat-panel-action--danger">
+                    <i class="bi bi-box-arrow-right"></i>Déconnexion
+                </button>
+            </form>
+        {% else %}
+            <a href="{% url 'accounts:inscription' %}" class="cat-panel-action">
+                <i class="bi bi-person-plus"></i>Créer un compte
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Overlay derrière le panel -->
+<div class="cat-panel-overlay d-lg-none" id="catPanelOverlay"></div>
+
+<!-- ── Scripts ─────────────────────────────────────────────────────── -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/main.js' %}"></script>
+{% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -4,7 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ─── Bouton retour en haut ───────────────
+  /* ── Bouton retour en haut ─────────────────────────────── */
   const btn = document.getElementById('backToTop');
   if (btn) {
     window.addEventListener('scroll', () => {
@@ -13,15 +13,14 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
   }
 
-  // ─── Auto-fermeture des messages flash ──
+  /* ── Auto-fermeture des messages flash (5 s) ───────────── */
   setTimeout(() => {
     document.querySelectorAll('.alert.fade.show').forEach(el => {
-      const bsAlert = bootstrap.Alert.getOrCreateInstance(el);
-      bsAlert.close();
+      bootstrap.Alert.getOrCreateInstance(el)?.close();
     });
   }, 5000);
 
-  // ─── Compteur de caractères Commentss ─
+  /* ── Compteur de caractères (commentaires) ─────────────── */
   const textarea = document.querySelector('textarea[name="contenu"]');
   if (textarea) {
     const max = parseInt(textarea.getAttribute('maxlength')) || 1000;
@@ -38,44 +37,82 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ─── Confirmation déconnexion ────────────
+  /* ── Confirmation déconnexion ──────────────────────────── */
   document.querySelectorAll('form[action*="deconnexion"]').forEach(form => {
+    // Ne pas bloquer le bouton dans le cat-panel (UX fluide)
+    if (form.closest('.cat-panel')) return;
     form.addEventListener('submit', e => {
-      if (!confirm('Voulez-vous vraiment vous déconnecter ?')) {
-        e.preventDefault();
-      }
+      if (!confirm('Voulez-vous vraiment vous déconnecter ?')) e.preventDefault();
     });
   });
 
-  // ─── Lazy loading images ─────────────────
+  /* ── Lazy loading images ───────────────────────────────── */
   if ('IntersectionObserver' in window) {
-    const imgs = document.querySelectorAll('img[data-src]');
-    const io = new IntersectionObserver((entries) => {
+    const io = new IntersectionObserver(entries => {
       entries.forEach(e => {
-        if (e.isIntersecting) {
-          e.target.src = e.target.dataset.src;
-          io.unobserve(e.target);
-        }
+        if (e.isIntersecting) { e.target.src = e.target.dataset.src; io.unobserve(e.target); }
       });
     });
-    imgs.forEach(img => io.observe(img));
+    document.querySelectorAll('img[data-src]').forEach(img => io.observe(img));
   }
 
-  // ─── Active nav highlighting ──────────────
-  const currentPath = window.location.pathname;
-  document.querySelectorAll('.main-nav .nav-link').forEach(link => {
-    if (link.getAttribute('href') === currentPath) {
-      link.classList.add('active');
-    }
-  });
+  /* ══════════════════════════════════════════════════════════
+     MOBILE — Recherche dépliable
+     ══════════════════════════════════════════════════════ */
+  const searchToggle = document.getElementById('mobileSearchToggle');
+  const searchBar    = document.getElementById('mobileSearchBar');
+  const searchIcon   = document.getElementById('searchIcon');
 
-  // ─── Bottom nav — état actif dynamique ───
-  // (complément aux classes Django côté serveur)
-  document.querySelectorAll('.bottom-nav-item').forEach(link => {
+  if (searchToggle && searchBar) {
+    searchToggle.addEventListener('click', () => {
+      const open = searchBar.classList.toggle('open');
+      searchIcon.className = open ? 'bi bi-x-lg' : 'bi bi-search';
+      if (open) searchBar.querySelector('input')?.focus();
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     MOBILE — Panel catégories (bottom sheet)
+     ══════════════════════════════════════════════════════ */
+  const btnCat  = document.getElementById('btnCategoriesMobile');
+  const panel   = document.getElementById('catPanel');
+  const overlay = document.getElementById('catPanelOverlay');
+  const closeBtn = document.getElementById('closeCatPanel');
+
+  function openPanel() {
+    panel?.classList.add('open');
+    overlay?.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+  function closePanel() {
+    panel?.classList.remove('open');
+    overlay?.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+
+  btnCat?.addEventListener('click', openPanel);
+  closeBtn?.addEventListener('click', closePanel);
+  overlay?.addEventListener('click', closePanel);
+
+  /* Fermer en swipant vers le bas */
+  if (panel) {
+    let startY = 0;
+    panel.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+    panel.addEventListener('touchend',   e => {
+      if (e.changedTouches[0].clientY - startY > 60) closePanel();
+    }, { passive: true });
+    /* Fermer quand on clique un lien dans le panel */
+    panel.querySelectorAll('a').forEach(a => a.addEventListener('click', closePanel));
+  }
+
+  /* ══════════════════════════════════════════════════════════
+     Highlighting actif de la bottom nav (complément Django)
+     ══════════════════════════════════════════════════════ */
+  const path = window.location.pathname;
+  document.querySelectorAll('.mobile-nav-item[href]').forEach(link => {
     const href = link.getAttribute('href');
-    if (href && href !== '#' && currentPath.startsWith(href) && href !== '/') {
-      link.classList.add('active');
-    } else if (href === '/' && currentPath === '/') {
+    if (!href || href === '#') return;
+    if ((href === '/' && path === '/') || (href !== '/' && path.startsWith(href))) {
       link.classList.add('active');
     }
   });
